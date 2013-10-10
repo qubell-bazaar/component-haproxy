@@ -1,0 +1,162 @@
+application:
+  configuration:
+    input.stats-user: admin
+    input.stats-pass: pa55w0rd
+    input.stats-port: "1926"
+    input.stats-url: /admin?stats
+  
+  interfaces:
+    input:
+      stats-user: "bind(workflow#input.stats-user)"
+      stats-pass: "bind(workflow#input.stats-pass)"
+      stats-port: "bind(workflow#input.stats-port)"
+      stats-url: "bind(workflow#input.stats-url)"
+    lb-management:
+      add-server: "bind(workflow#actions.add-server)"
+      del-server: "bind(workflow#actions.del-server)"
+    output:
+      lb-host: "bind(workflow#result.lb-host)"
+      lb-url: "bind(workflow#result.lb-statistics-url)"
+      stats-user: "bind(workflow#result.stats-user)"
+      stats-pass: "bind(workflow#result.stats-pass)"
+      lb-stats: "bind(workflow#result.lb-stats)"
+      
+  bindings:
+    - [workflow, wfService]
+    - [workflow, secureStore]
+    
+  components:
+    wfService:
+      type: reference.Service
+      interfaces:
+        executor:
+          execute-workflow: receive-command(object request => object status => object status)
+    secureStore:
+      type: reference.Service
+      interfaces:
+        keypair-store:
+          get-keypair: receive-command(string id => object privateKey)
+          
+    workflow:
+      type: workflow.Instance
+      interfaces:
+        input:
+          stats-user: configuration(string)
+          stats-pass: configuration(string)
+          stats-port: configuration(string)
+          stats-url: configuration(string)
+          
+        actions:
+          add-server: receive-command(string app-host, string app-port , string lb-bucket )
+          del-server: receive-command(string app-host, string app-port , string lb-bucket )
+       
+        result:
+          lb-stats: publish-signal(object)
+          # for ui
+          lb-host: publish-signal(string)
+          lb-statistics-url: publish-signal(string)
+          stats-user: publish-signal(string)
+          stats-pass: publish-signal(string)
+       
+        keypair-store:
+          get-keypair: send-command(string id => object privateKey)
+          
+      required: [keypair-store]
+          
+      configuration:
+        configuration.workflows:
+          launch:
+            parameters:
+              - stats-user: &stats-user
+                  description: haproxy statistics user
+              - stats-pass: &stats-pass
+                  description: haproxy statistics user pass
+              - stats-port: &stats-port
+                  description: haproxy statistics port 
+              - stats-url: &stats-url
+                  description: haproxy statistics url
+            
+            steps:
+              - provision-vm:
+                  action: provisionAmazonVm
+                  phase: provision
+                  parameters:
+                    roleName: default
+                    hardwareId: m1.small
+                    retryCount: 1
+                    jcloudsProvider: aws-ec2
+                    jcloudsEndpoint: https://ec2.us-east-1.amazonaws.com
+                    jcloudsRegions: us-east-1
+                    jcloudsNodeNamePrefix: component
+                    jcloudsIdentity: "{$.identity}"
+                    jcloudsCredential: "{$.credential}"
+                    vmIdentity: ubuntu
+                    imageId: us-east-1/ami-e50b5d8c
+                    ec2SecurityGroup: default
+                  output:
+                    lb-host: ips
+
+              - lb-install:
+                  action: "chefsolo"
+                  precedingPhases: [ provision ]
+                  phase: lb-install
+                  parameters:
+                    roles: [ default ]
+                    runList: ["recipe[haproxy]"]
+                    recipeUrl: "https://s3.amazonaws.com/ab-comp/haproxy/cookbooks.tar.gz"
+                    jattrs:
+                      haproxy:
+                        stats_user: "{$.stats-user}"
+                        stats_pass: "{$.stats-pass}"
+                        stats_port: "{$.stats-port}"
+                        stats_url: "{$.stats-url}"
+            return:
+              lb-stats:
+                value:
+                  lb-host: "{$.lb-host}"
+                  lb-statistics-url: "https://{$.lb-host}:{$.stats-port}{$.stats-url}"
+                  stats-user: "{$.stats-user}"
+                  stats-pass: "{$.stats-pass}"
+              
+          add-server:
+            parameters:
+              - app-server:
+                  description: "server:port add to lb"
+              - lb-bucket:
+                  description: "lb bucket (proto://lb-type:port)for app-server"
+               
+            steps:
+              - add-server:
+                  action: "chefsolo"
+                  parameters:
+                    roles: [ default ]
+                    runList: [ "recipe[haproxy::add_server]" ]
+                    recipeUrl: "https://s3.amazonaws.com/ab-comp/haproxy/cookbooks.tar.gz"
+                    jattrs:
+                      haproxy:
+                        server: "{$.app-host}:{$.app-port}"
+                        bucket: "{$.lb-bucket}"
+                        
+          del-server:
+            parameters:
+              - app-server:
+                  description: "server:port add to lb"
+              - lb-bucket:
+                  description: "lb bucket (proto://lb-type:port)for app-server"
+          
+            steps:
+              - del-server:
+                  action: "chefsolo"
+                  parameters:
+                    roles: [ default ]
+                    runList: [ "recipe[haproxy::del_server]" ]
+                    recipeUrl: "https://s3.amazonaws.com/ab-comp/haproxy/cookbooks.tar.gz"
+                    jattrs:
+                      haproxy:
+                        server: "{$.app-host}:{$.app-port}"
+                        bucket: "{$.lb-bucket}"
+              
+          destroy:
+            steps:
+              - destroy:
+                  action: undeployEnv

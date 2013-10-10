@@ -1,0 +1,28 @@
+global
+    log         127.0.0.1 local2
+    pidfile     /var/run/haproxy.pid
+    maxconn     4000
+    user        haproxy
+    group       haproxy
+    daemon
+
+defaults
+    mode        http
+    log         global
+    option      dontlognull
+    option      httpclose
+    option      httplog
+    option      forwardfor
+    option      redispatch
+    timeout connect 10000 # default 10 second time out if a backend is not found
+    timeout client 60000
+    timeout server 60000
+    timeout http-request 5000 # 5 seconds to receive all headers
+    maxconn     60000
+    retries     3
+
+listen stats
+    bind *:<%= @stats_port %> ssl crt <%= @stats_cert %> ciphers ALL:!ADH:!LOW:!SSLv2:!EXP:!RC4-SHA:!DES-CBC3-SHA:+HIGH:+MEDIUM
+    stats enable
+    stats uri <%= @stats_uri %>
+    stats auth <%= @stats_user %>:<%= @stats_pass %>

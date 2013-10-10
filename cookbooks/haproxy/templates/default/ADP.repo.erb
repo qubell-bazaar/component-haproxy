@@ -1,0 +1,12 @@
+[ADP]
+name=ADP Centos <%= @relnum %> repository
+baseurl=https://s3.amazonaws.com/adp-repo/centos/stable/<%= @relnum %>/$basearch
+gpgcheck=0
+enabled=1
+
+[ADP.other]
+name=ADP Centos <%= @relnum %> repository (thirdparty)
+baseurl=https://s3.amazonaws.com/adp-repo/centos/stable/<%= @relnum %>/thirdparty
+gpgcheck=0
+enabled=1
+
