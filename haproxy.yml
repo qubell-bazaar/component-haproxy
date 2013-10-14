@@ -47,7 +47,7 @@ application:
           stats-url: configuration(string)
           
         actions:
-          add-server: receive-command(string app-host, string app-port , string lb-bucket )
+          add-server: receive-command(list<string> app-host, string app-port , string lb-bucket )
           del-server: receive-command(string app-host, string app-port , string lb-bucket )
        
         result:
@@ -122,6 +122,8 @@ application:
             parameters:
               - app-server:
                   description: "server:port add to lb"
+              - app-port:
+                  description: "application port to lb"
               - lb-bucket:
                   description: "lb bucket (proto://lb-type:port)for app-server"
                
@@ -130,17 +132,21 @@ application:
                   action: "chefsolo"
                   parameters:
                     roles: [ default ]
-                    runList: [ "recipe[haproxy::add_server]" ]
-                    recipeUrl: "https://s3.amazonaws.com/ab-comp/haproxy/cookbooks.tar.gz"
+                    runList: [ "recipe[haproxy::add_servers]" ]
+                    #recipeUrl: "https://s3.amazonaws.com/ab-comp/haproxy/cookbooks.tar.gz"
+                    recipeUrl: "https://dl.dropboxusercontent.com/u/250836/cookbooks.tar.gz"
                     jattrs:
                       haproxy:
-                        server: "{$.app-host}:{$.app-port}"
+                        server: "{$.app-host}"
+                        port: "{$.app-port}"
                         bucket: "{$.lb-bucket}"
                         
           del-server:
             parameters:
               - app-server:
                   description: "server:port add to lb"
+              - app-port:
+                  description: "application port to lb"
               - lb-bucket:
                   description: "lb bucket (proto://lb-type:port)for app-server"
           
@@ -149,11 +155,12 @@ application:
                   action: "chefsolo"
                   parameters:
                     roles: [ default ]
-                    runList: [ "recipe[haproxy::del_server]" ]
+                    runList: [ "recipe[haproxy::del_servers]" ]
                     recipeUrl: "https://s3.amazonaws.com/ab-comp/haproxy/cookbooks.tar.gz"
                     jattrs:
                       haproxy:
-                        server: "{$.app-host}:{$.app-port}"
+                        server: "{$.app-host}"
+                        port: "{$.app-port}"
                         bucket: "{$.lb-bucket}"
               
           destroy:
