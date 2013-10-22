@@ -11,14 +11,14 @@ application:
       stats-pass: "bind(workflow#input.stats-pass)"
       stats-port: "bind(workflow#input.stats-port)"
       stats-url: "bind(workflow#input.stats-url)"
-    lb-management:
+    management:
       add-server: "bind(workflow#actions.add-server)"
       del-server: "bind(workflow#actions.del-server)"
     output:
-      lb-host: "bind(workflow#result.lb-host)"
-      lb-url: "bind(workflow#result.lb-statistics-url)"
-      stats-user: "bind(workflow#result.stats-user)"
-      stats-pass: "bind(workflow#result.stats-pass)"
+      #lb-host: "bind(workflow#result.lb-host)"
+      #lb-url: "bind(workflow#result.lb-statistics-url)"
+      #stats-user: "bind(workflow#result.stats-user)"
+      #stats-pass: "bind(workflow#result.stats-pass)"
       lb-stats: "bind(workflow#result.lb-stats)"
       
   bindings:
@@ -31,6 +31,7 @@ application:
       interfaces:
         executor:
           execute-workflow: receive-command(object request => object status => object status)
+          execute-command: send-command(string interface, string command, map<string, object> arguments => map<string, object> response => map<string, object> response)
     secureStore:
       type: reference.Service
       interfaces:
@@ -48,15 +49,15 @@ application:
           
         actions:
           add-server: receive-command(list<string> app-host, string app-port , string lb-bucket )
-          del-server: receive-command(string app-host, string app-port , string lb-bucket )
+          del-server: receive-command(list<string> app-host, string app-port , string lb-bucket )
        
         result:
           lb-stats: publish-signal(object)
           # for ui
-          lb-host: publish-signal(string)
-          lb-statistics-url: publish-signal(string)
-          stats-user: publish-signal(string)
-          stats-pass: publish-signal(string)
+          #lb-host: publish-signal(string)
+          #lb-statistics-url: publish-signal(string)
+          #stats-user: publish-signal(string)
+          #stats-pass: publish-signal(string)
        
         keypair-store:
           get-keypair: send-command(string id => object privateKey)
@@ -120,12 +121,12 @@ application:
               
           add-server:
             parameters:
-              - app-server:
+              - app-host:
                   description: "server:port add to lb"
               - app-port:
                   description: "application port to lb"
               - lb-bucket:
-                  description: "lb bucket (proto://lb-type:port)for app-server"
+                  description: "lb bucket (proto://lb-type:port)for app-host"
                
             steps:
               - add-server:
@@ -133,8 +134,8 @@ application:
                   parameters:
                     roles: [ default ]
                     runList: [ "recipe[haproxy::add_servers]" ]
-                    #recipeUrl: "https://s3.amazonaws.com/ab-comp/haproxy/cookbooks.tar.gz"
-                    recipeUrl: "https://dl.dropboxusercontent.com/u/250836/cookbooks.tar.gz"
+                    recipeUrl: "https://s3.amazonaws.com/ab-comp/haproxy/cookbooks.tar.gz"
+                    #recipeUrl: "https://dl.dropboxusercontent.com/u/250836/cookbooks.tar.gz"
                     jattrs:
                       haproxy:
                         server: "{$.app-host}"
@@ -143,12 +144,12 @@ application:
                         
           del-server:
             parameters:
-              - app-server:
+              - app-host:
                   description: "server:port add to lb"
               - app-port:
                   description: "application port to lb"
               - lb-bucket:
-                  description: "lb bucket (proto://lb-type:port)for app-server"
+                  description: "lb bucket (proto://lb-type:port)for app-host"
           
             steps:
               - del-server:
