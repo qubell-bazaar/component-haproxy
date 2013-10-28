@@ -11,7 +11,7 @@ application:
       stats-pass: "bind(workflow#input.stats-pass)"
       stats-port: "bind(workflow#input.stats-port)"
       stats-url: "bind(workflow#input.stats-url)"
-    management:
+    lb-management:
       add-server: "bind(workflow#actions.add-server)"
       del-server: "bind(workflow#actions.del-server)"
     output:
