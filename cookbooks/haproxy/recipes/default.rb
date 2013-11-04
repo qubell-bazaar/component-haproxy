@@ -108,6 +108,13 @@ cookbook_file "/usr/local/bin/delServer.sh" do
   mode 00744
 end
 
+cookbook_file "/usr/local/bin/delServers.sh" do
+  source "delServers.sh"
+  owner "root"
+  group "root"
+  mode 00744
+end
+
 bash "generate haproxy.cfg" do
   cwd "/usr/local/bin"
   code <<-EEND

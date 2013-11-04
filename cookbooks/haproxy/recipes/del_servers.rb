@@ -1,6 +1,6 @@
 #
 # Cookbook Name:: haproxy
-# Recipe:: default
+# Recipe:: del_servers 
 #
 # Copyright 2013, YOUR_COMPANY_NAME
 #

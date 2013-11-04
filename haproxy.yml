@@ -4,27 +4,28 @@ application:
     input.stats-pass: pa55w0rd
     input.stats-port: "1926"
     input.stats-url: /admin?stats
-  
+
   interfaces:
     input:
       stats-user: "bind(workflow#input.stats-user)"
       stats-pass: "bind(workflow#input.stats-pass)"
       stats-port: "bind(workflow#input.stats-port)"
       stats-url: "bind(workflow#input.stats-url)"
-    lb-management:
-      add-server: "bind(workflow#actions.add-server)"
-      del-server: "bind(workflow#actions.del-server)"
+    lb-manage:
+      add-servers: "bind(workflow#actions.add-servers)"
+      reconfigure-servers: "bind(workflow#actions.reconfigure-servers)"
+      #del-server: "bind(workflow#actions.del-server)"
     output:
       #lb-host: "bind(workflow#result.lb-host)"
       #lb-url: "bind(workflow#result.lb-statistics-url)"
       #stats-user: "bind(workflow#result.stats-user)"
       #stats-pass: "bind(workflow#result.stats-pass)"
       lb-stats: "bind(workflow#result.lb-stats)"
-      
+
   bindings:
     - [workflow, wfService]
     - [workflow, secureStore]
-    
+
   components:
     wfService:
       type: reference.Service
@@ -37,7 +38,7 @@ application:
       interfaces:
         keypair-store:
           get-keypair: receive-command(string id => object privateKey)
-          
+
     workflow:
       type: workflow.Instance
       interfaces:
@@ -46,11 +47,12 @@ application:
           stats-pass: configuration(string)
           stats-port: configuration(string)
           stats-url: configuration(string)
-          
+
         actions:
-          add-server: receive-command(list<string> app-host, string app-port , string lb-bucket )
-          del-server: receive-command(list<string> app-host, string app-port , string lb-bucket )
-       
+          add-servers: receive-command(list<string> app-hosts, string app-port, string lb-bucket => string entry-url)
+          reconfigure-servers: receive-command(list<string> app-hosts, string app-port, string lb-bucket)
+          #del-server: receive-command(list<string> app-hosts, string app-port , string lb-bucket )
+
         result:
           lb-stats: publish-signal(object)
           # for ui
@@ -58,12 +60,12 @@ application:
           #lb-statistics-url: publish-signal(string)
           #stats-user: publish-signal(string)
           #stats-pass: publish-signal(string)
-       
+
         keypair-store:
           get-keypair: send-command(string id => object privateKey)
-          
+
       required: [keypair-store]
-          
+
       configuration:
         configuration.workflows:
           launch:
@@ -76,7 +78,7 @@ application:
                   description: haproxy statistics port 
               - stats-url: &stats-url
                   description: haproxy statistics url
-            
+
             steps:
               - provision-vm:
                   action: provisionAmazonVm
@@ -114,56 +116,59 @@ application:
             return:
               lb-stats:
                 value:
-                  lb-host: "{$.lb-host}"
+                  lb-host: "{$.lb-host[0]}"
                   lb-statistics-url: "https://{$.lb-host}:{$.stats-port}{$.stats-url}"
                   stats-user: "{$.stats-user}"
                   stats-pass: "{$.stats-pass}"
-              
-          add-server:
+
+          add-servers:
             parameters:
-              - app-host:
+              - app-hosts:
                   description: "server:port add to lb"
               - app-port:
                   description: "application port to lb"
               - lb-bucket:
-                  description: "lb bucket (proto://lb-type:port)for app-host"
-               
+                  description: "lb bucket (proto://lb-type:port)for app-hosts"
+
             steps:
-              - add-server:
+              - add-servers:
                   action: "chefsolo"
                   parameters:
                     roles: [ default ]
                     runList: [ "recipe[haproxy::add_servers]" ]
                     recipeUrl: "https://s3.amazonaws.com/ab-comp/haproxy/cookbooks.tar.gz"
-                    #recipeUrl: "https://dl.dropboxusercontent.com/u/250836/cookbooks.tar.gz"
                     jattrs:
                       haproxy:
-                        server: "{$.app-host}"
+                        server: "{$.app-hosts}"
                         port: "{$.app-port}"
                         bucket: "{$.lb-bucket}"
-                        
-          del-server:
+            return:
+              entry-url:
+                #this url should depend on lb-bucket and generated somewhere inside
+                value: "http://{$.lb-stats.lb-host}"
+
+          reconfigure-servers:
             parameters:
-              - app-host:
+              - app-hosts:
                   description: "server:port add to lb"
               - app-port:
                   description: "application port to lb"
               - lb-bucket:
-                  description: "lb bucket (proto://lb-type:port)for app-host"
-          
+                  description: "lb bucket (proto://lb-type:port)for app-hosts"
+
             steps:
-              - del-server:
+              - reconfigure-servers:
                   action: "chefsolo"
                   parameters:
                     roles: [ default ]
-                    runList: [ "recipe[haproxy::del_servers]" ]
+                    runList: [ "recipe[haproxy::reconfigure]" ]
                     recipeUrl: "https://s3.amazonaws.com/ab-comp/haproxy/cookbooks.tar.gz"
                     jattrs:
                       haproxy:
-                        server: "{$.app-host}"
+                        server: "{$.app-hosts}"
                         port: "{$.app-port}"
                         bucket: "{$.lb-bucket}"
-              
+
           destroy:
             steps:
               - destroy:

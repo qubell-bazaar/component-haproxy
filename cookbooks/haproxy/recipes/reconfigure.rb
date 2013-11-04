@@ -1,11 +1,18 @@
 #
 # Cookbook Name:: haproxy
-# Recipe:: add_servers
+# Recipe:: reconfigure 
 #
 # Copyright 2013, YOUR_COMPANY_NAME
 #
 # All rights reserved - Do Not Redistribute
 #
+
+bash "delete servers" do
+  cwd "/usr/local/bin"
+  code <<-EEND
+    ./delServers.sh "#{node['haproxy']['bucket']}"
+ EEND
+end
 
 ssl_cert="#{Chef::Config[:file_cache_path]}/cert.pem"
 if ( !node['haproxy']['ssl_cert'].nil? )
