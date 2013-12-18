@@ -29,24 +29,33 @@ function publish {
 }
 
 function replace {
-    check sed -i.bak -e 's/'${REPO_NAME}'-cookbooks-stable/'${REPO_NAME}'-cookbooks-dev/g' ${REPO_NAME}.yml
+    local REVISION=$1
+
+    check sed -i.bak -e 's/'${REPO_NAME}'-cookbooks-stable/'${REPO_NAME}'-cookbooks-'${REVISION}'/g' ${REPO_NAME}.yml
     cat ${REPO_NAME}.yml
 }
 
 function publish_github {
+    GIT_URL=$(git config remote.origin.url)
+    NEW_GIT_URL=$(echo $GIT_URL | sed -e 's/^git:/https:/g')
+
+    git remote set-url --push origin $NEW_GIT_URL
+    git remote set-branches --add origin master
+    git fetch -q
     git config user.name ${GIT_NAME}
     git config user.email ${GIT_EMAIL}
     git config credential.helper "store --file=.git/credentials"
     echo "https://${GH_TOKEN}:@github.com" > .git/credentials
-    sed -i.bak -e 's/'${REPO_NAME}'-cookbooks-dev/'${REPO_NAME}'-cookbooks-stable-'${GIT_REVISION}'/g' ${REPO_NAME}.yml
+    rm -rf *.tar.gz
     git commit -a -m "CI: Success build ${TRAVIS_BUILD_NUMBER}"
-    git push origin master
+    git checkout -b build
+    git push origin build:master
     rm -rf .git/credentials
 }
 
 if [[ ${TRAVIS_PULL_REQUEST} == "false" ]]; then
-    publish dev
-    replace
+    publish "stable-${GIT_REVISION}"
+    replace "stable-${GIT_REVISION}"
 
     pushd test
 
@@ -54,6 +63,5 @@ if [[ ${TRAVIS_PULL_REQUEST} == "false" ]]; then
 
     popd
 
-    publish "stable-${GIT_REVISION}"
     publish_github
 fi
