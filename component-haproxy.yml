@@ -95,7 +95,7 @@ application:
                   parameters:
                     roles: [ default ]
                     runList: ["recipe[haproxy]"]
-                    recipeUrl: "https://s3.amazonaws.com/qubell-starter-kit-artifacts/qubell-bazaar/component-haproxy-cookbooks-stable.tar.gz"
+                    recipeUrl: "https://s3.amazonaws.com/qubell-starter-kit-artifacts/qubell-bazaar/component-haproxy-cookbooks-stable-d064013.tar.gz"
                     jattrs:
                       haproxy:
                         stats_user: "{$.stats-user}"
@@ -125,7 +125,7 @@ application:
                   parameters:
                     roles: [ default ]
                     runList: [ "recipe[haproxy::add_servers]" ]
-                    recipeUrl: "https://s3.amazonaws.com/qubell-starter-kit-artifacts/qubell-bazaar/component-haproxy-cookbooks-stable.tar.gz"
+                    recipeUrl: "https://s3.amazonaws.com/qubell-starter-kit-artifacts/qubell-bazaar/component-haproxy-cookbooks-stable-d064013.tar.gz"
                     jattrs:
                       haproxy:
                         server: "{$.app-hosts}"
@@ -151,7 +151,7 @@ application:
                   parameters:
                     roles: [ default ]
                     runList: [ "recipe[haproxy::reconfigure]" ]
-                    recipeUrl: "https://s3.amazonaws.com/qubell-starter-kit-artifacts/qubell-bazaar/component-haproxy-cookbooks-stable.tar.gz"
+                    recipeUrl: "https://s3.amazonaws.com/qubell-starter-kit-artifacts/qubell-bazaar/component-haproxy-cookbooks-stable-d064013.tar.gz"
                     jattrs:
                       haproxy:
                         server: "{$.app-hosts}"
