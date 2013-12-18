@@ -46,7 +46,6 @@ application:
         actions:
           add-servers: receive-command(list<string> app-hosts, string app-port, string lb-bucket => string entry-url)
           reconfigure-servers: receive-command(list<string> app-hosts, string app-port, string lb-bucket)
-          #del-server: receive-command(list<string> app-hosts, string app-port , string lb-bucket )
 
         result:
           lb-stats: publish-signal(object)

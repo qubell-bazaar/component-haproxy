@@ -2,6 +2,7 @@
 
 REPO_NAME=$(echo ${TRAVIS_REPO_SLUG} | cut -d/ -f2)
 OWNER_NAME=$(echo ${TRAVIS_REPO_SLUG} | cut -d/ -f1)
+GIT_REVISION=$(git log --pretty=format:'%h' -n 1)
 
 function check {
     "$@"
@@ -32,14 +33,27 @@ function replace {
     cat ${REPO_NAME}.yml
 }
 
+function publish_github {
+    git config user.name ${GIT_NAME}
+    git config user.email ${GIT_EMAIL}
+    git config credential.helper "store --file=.git/credentials"
+    echo "https://${GH_TOKEN}:@github.com" > .git/credentials
+    sed -i.bak -e 's/'${REPO_NAME}'-cookbooks-dev/'${REPO_NAME}'-cookbooks-stable-'${GIT_REVISION}'/g' ${REPO_NAME}.yml
+    git commit -a -m "CI: Success build ${TRAVIS_BUILD_NUMBER}"
+    git push origin master
+    rm -rf .git/credentials
+}
 
-publish dev
-replace
+if [[ ${TRAVIS_PULL_REQUEST} == "false" ]]; then
+    publish dev
+    replace
 
-pushd test
+    pushd test
 
-check python test_runner.py
+    check python test_runner.py
 
-popd
+    popd
 
-publish stable
+    publish "stable-${GIT_REVISION}"
+    publish_github
+fi

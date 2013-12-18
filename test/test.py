@@ -1,10 +1,12 @@
 import os
 
+import requests
+
 from test_runner import BaseComponentTestCase
 from qubell.api.private.testing import instance, workflow, values
 
 
-class ComponentTestCase(BaseComponentTestCase):
+class HAProxyComponentTestCase(BaseComponentTestCase):
     name = "component-haproxy"
     apps = [{
         "name": name,
@@ -13,11 +15,8 @@ class ComponentTestCase(BaseComponentTestCase):
 
 
     @instance(byApplication=name)
-    @values({"lb-host": "host"})
-    def test_port(self, instance, host):
-        import socket
+    @values({"lb-statistics-url": "url", "stats-user": "user", "stats-pass": "password"})
+    def test_admin_page(self, instance, url, user, password):
+        resp = requests.get(url, auth=(user, password), verify=False)
 
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        result = sock.connect_ex((host, 80))
-
-        assert result == 0
+        assert resp.status_code == 200
