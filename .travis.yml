@@ -1,0 +1,20 @@
+env:
+  global:
+  - "ARTIFACTS_AWS_REGION=us-east-1"
+  - "ARTIFACTS_S3_BUCKET=qubell-starter-kit-artifacts"
+  - "QUBELL_TENANT=https://express.qubell.com"
+  - "PROVIDER_TYPE=aws-ec2"
+  - "PROVIDER_REGION=us-east-1"
+  - secure: nz2MCGMHwxeP3i2GBlkHuNF65YdYphqotm47lP/7UUnaKuvNIU2rdRyp1dSYs7PbDqJhAiZN7+oGLH51TY2PmA4F+9XTMTY7jQQZIR1upOYwrd5j23PQiyQI8DT9gTIvcmfa1b+fLvs1Oewn8pLAzKnnc8X5y5IZt+aVE+lF2ok=
+  - secure: cLe+i3aU08yY+vXlpv0eVE9pf8IM1+1vfJJryb9yi+/T+6cXSYZ3kYNvL8X2ZjKjoUf8zTOZUL7svT/enVFnG7yinbXt8SmY5clBRx+SyNCOUnSc5rmAMmnQw1W6ezI5Yq5qlHn4dd+ShX9xaeHDoDMo25XGfRJIaGlNy9XXuBE=
+  - secure: KsUug7AhlcrXipEYTvXYqh0wOyiKGpK4RcECMwjjniJ6pWHtRGm3KrIgs+Eniwjvclym2l0HhHmBowsm9pxBMVk6xqPRO/lAG/+0rSL7SHXs7KpGgCdMH3Wd8XqfS6XTd8FrCmosvVVnGDpuVE4h9eapGOwkECt5RTaZZjh2lbI=
+  - secure: BWe/s9A5Pue9icEOzdhhxPVLHN5tQQ03BZ6e6LIlcJUDoOSBxyzaVeZTI2qfwXbmwy7aTjHs7GSox8n6luv1dRa79O0gzBfUzlW0ad5oLJ2nkhAUmwfRjpqdTXZj3gFUCtDFG3yCiz2ioWH6N8lmlzNel0peKeqQ68Na9w7P/7Q=
+  - secure: ao5PkSCFtyUMrAVUZWQb3t8opxCyyEiWt72J1TQ6OGXqijB1hA0fDG4o27BDOzIWCr9uKEnlyD/f7MJBF3o8guKcUF+/QEXj2bX7fYQS8Gvdj5tj8g/PwsQiXSdCRYevPdzG+Wmk5Y66q5hW+0UHToOPJDMtj3qpI4WPnrvojSg=
+language: python
+python:
+- '2.7'
+install: pip install -r test/requirements.txt
+before_script:
+- gem install travis-artifacts --no-ri --no-rdoc
+- git submodule update --init --recursive
+script: ./build.sh

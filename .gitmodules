@@ -4,3 +4,6 @@
 [submodule "cookbooks/apt"]
 	path = cookbooks/apt
 	url = https://github.com/opscode-cookbooks/apt.git
+[submodule "component-skeleton"]
+	path = component-skeleton
+	url = https://github.com/qubell-bazaar/component-skeleton.git
