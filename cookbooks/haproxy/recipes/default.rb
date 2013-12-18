@@ -21,25 +21,40 @@ when "debian", "ubuntu"
     components ["main"]
     keyserver "keyserver.ubuntu.com"
     key "A6D3315B"
-end
+  end
 
-when "redhat", "centos"
-  include_recipe "repo"
-  haproxy_version = "1.5-dev14.el6"
-end
-
-package "haproxy" do
-  version haproxy_version
-  action :install
-end
-
-case node[:platform]
-when "debian", "ubuntu"
+  package "haproxy" do
+    version haproxy_version
+    action :install
+  end
+  
   bash "enable haproxy" do
     code <<-EEND
       echo 'ENABLED=1' > /etc/default/haproxy
     EEND
     only_if { File.exists? "/etc/default/haproxy" }
+  end
+
+when "centos"
+  if node['platform_version'].to_f < 6.0
+    remote_file "/tmp/haproxy.rpm" do
+      source "http://silverdire.com/files/repo/el5/x86_64/haproxy-1.5-dev19.el5.x86_64.rpm"
+      action :create
+    end
+    rpm_package "haproxy.rpm" do
+      source "/tmp/haproxy.rpm"
+      action :install    
+    end
+  end
+  if node['platform_version'].to_f > 6.0
+    remote_file "/tmp/haproxy-1.5-dev19.el6.x86_64.rpm" do
+      source "http://silverdire.com/files/repo/el6/x86_64/haproxy-1.5-dev19.el6.x86_64.rpm"
+      action :create_if_missing
+    end
+    rpm_package "haproxy-1.5-dev.rpm" do
+      source "/tmp/haproxy-1.5-dev19.el6.x86_64.rpm"
+      action :install
+    end
   end
 end
 
@@ -121,4 +136,16 @@ bash "generate haproxy.cfg" do
     ./buildConfig.sh
   EEND
   notifies :restart, "service[haproxy]"
+end
+
+if platform_family?('rhel')
+  execute "stop iptables" do
+    command "/etc/init.d/iptables stop"
+  end
+end
+
+if platform_family?('debian')
+  execute "stop iptables" do
+    command "iptables -F"
+  end
 end
