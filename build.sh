@@ -3,6 +3,7 @@
 REPO_NAME=$(echo ${TRAVIS_REPO_SLUG} | cut -d/ -f2)
 OWNER_NAME=$(echo ${TRAVIS_REPO_SLUG} | cut -d/ -f1)
 GIT_REVISION=$(git log --pretty=format:'%h' -n 1)
+LAST_COMMIT_AUTHOR=$(git log --pretty=format:'%an' -n1)
 
 function check {
     "$@"
@@ -31,7 +32,7 @@ function publish {
 function replace {
     local REVISION=$1
 
-    check sed -i.bak -e 's/'${REPO_NAME}'-cookbooks-stable/'${REPO_NAME}'-cookbooks-'${REVISION}'/g' ${REPO_NAME}.yml
+    check sed -i.bak -e 's/'${REPO_NAME}'-cookbooks-stable-[[:alnum:]]*.tar.gz/'${REPO_NAME}'-cookbooks-'${REVISION}'.tar.gz/g' ${REPO_NAME}.yml
     cat ${REPO_NAME}.yml
 }
 
@@ -54,14 +55,16 @@ function publish_github {
 }
 
 if [[ ${TRAVIS_PULL_REQUEST} == "false" ]]; then
-    publish "stable-${GIT_REVISION}"
-    replace "stable-${GIT_REVISION}"
+    if [[ ${LAST_COMMIT_AUTHOR} != "CI" ]]; then
+        publish "stable-${GIT_REVISION}"
+        replace "stable-${GIT_REVISION}"
 
-    pushd test
+        pushd test
 
-    check python test_runner.py
+        check python test_runner.py
 
-    popd
+        popd
 
-    publish_github
+        publish_github
+    fi
 fi
