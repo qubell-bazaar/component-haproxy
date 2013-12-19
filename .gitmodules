@@ -7,3 +7,6 @@
 [submodule "component-skeleton"]
 	path = component-skeleton
 	url = https://github.com/qubell-bazaar/component-skeleton.git
+[submodule "cookbooks/yum"]
+	path = cookbooks/yum
+	url = https://github.com/opscode-cookbooks/yum.git

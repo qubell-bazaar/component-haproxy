@@ -1,7 +1,6 @@
 #!/bin/bash -x
 server=$1
 eval $(echo $2 | sed -e 's#^\(.*\)://\(.*\):\([0-9]*\)\(/.*\)$#proto="\1";balance_type="\2";fend_port="\3";url="\4"#')
-cert=$3
 
 base="/etc/haproxy"
 backend_name=`md5sum <<< $proto$fend_port$url | cut -d " " -f1`
@@ -19,21 +18,13 @@ fi
 case $proto in
   http) mode="http" 
         proto="http";;
-  https)
-        stat_ssl=1
-        mode="http" 
-	proto="https";;
   tcp)  mode="tcp" 
         proto="tcp";;
-  ssl) 
-        stat_ssl="1"
-        mode="tcp" 
-        proto="ssl";;
   *) echo "Wrong proto" && exit 1 ;; 
 esac
 
 if [ "$mode" == tcp ] && [ "$url" != '/' ]; then
-  echo "URL could be / only, when mode tcp or ssl"
+  echo "URL could be / only, when mode tcp"
   exit 1
 fi
 
@@ -44,36 +35,8 @@ else
   echo "Frontend with $fend_port exists"
   exit 1;
 fi
-#with ssl
-if [ "$stat_ssl" = 1 ]; then
-  #check ssl cert 
-  if [ ! -z $cert ]; then
-    cp "$cert" "$base/$path/ssl.pem"
-  else
-    #generate cert
-    openssl genrsa -out "$base/$path/ssl.key" 2048
-    openssl req -new -x509 -extensions v3_ca -days 1100 -subj "/CN=*" -nodes -out "$base/$path/ssl.pem" -key "$base/$path/ssl.key"
-    cat "$base/$path/ssl.key" >> "$base/$path/ssl.pem"
-  fi
-  cat << EOF > "$base/$path/frontend.cfg"
 
-frontend $proto-$fend_port
-  bind *:$fend_port ssl crt $base/$path/ssl.pem ciphers ALL:!ADH:!LOW:!SSLv2:!EXP:!RC4-SHA:!DES-CBC3-SHA:+HIGH:+MEDIUM
-  mode $mode
-EOF
-
-  if [ "$mode" == tcp ]; then
-    cat << EOF >> "$base/$path/frontend.cfg"
-  option tcplog
-EOF
-  else
-    cat << EOF >> "$base/$path/frontend.cfg"
-  option httplog
-EOF
-  fi
-##w/o ssl
-else
-  cat << EOF > "$base/$path/frontend.cfg"
+cat << EOF > "$base/$path/frontend.cfg"
 
 frontend $proto-$fend_port
   bind *:$fend_port
@@ -88,7 +51,6 @@ EOF
   option httplog
 EOF
   fi
-fi
 }
 
 addBackend(){
