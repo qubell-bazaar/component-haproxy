@@ -22,7 +22,7 @@ defaults
     retries     3
 
 listen stats
-    bind *:<%= @stats_port %> ssl crt <%= @stats_cert %> ciphers ALL:!ADH:!LOW:!SSLv2:!EXP:!RC4-SHA:!DES-CBC3-SHA:+HIGH:+MEDIUM
+    bind *:<%= @stats_port %> 
     stats enable
     stats uri <%= @stats_uri %>
     stats auth <%= @stats_user %>:<%= @stats_pass %>
