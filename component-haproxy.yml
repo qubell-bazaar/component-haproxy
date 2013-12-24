@@ -106,7 +106,7 @@ application:
               lb-stats:
                 value:
                   lb-host: "{$.lb-host[0]}"
-                  lb-statistics-url: "https://{$.lb-host}:{$.stats-port}{$.stats-url}"
+                  lb-statistics-url: "http://{$.lb-host}:{$.stats-port}{$.stats-url}"
                   stats-user: "{$.stats-user}"
                   stats-pass: "{$.stats-pass}"
 
