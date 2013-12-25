@@ -78,12 +78,12 @@ end
 
 if platform_family?('rhel')
   execute "stop iptables" do
-    command "/etc/init.d/iptables stop"
+    command "if [ -e "/sbin/iptables" ]; then bash -c '/etc/init.d/iptables stop'; else echo $?; fi"
   end
 end
 
 if platform_family?('debian')
   execute "stop iptables" do
-    command "iptables -F"
+    command "if [ -e "/sbin/iptables" ]; then bash -c '/sbin/iptables -F'; else echo $?; fi"
   end
 end
