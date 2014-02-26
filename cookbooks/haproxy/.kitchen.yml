@@ -52,7 +52,7 @@ platforms:
       flavor_id: "m1.small"
       tags:
         Name: haproxy-ct-CentOS-5.3
-        owner_name: test-kitch
+        owner_name: test-kitchen
 
 suites:
   - name: default
