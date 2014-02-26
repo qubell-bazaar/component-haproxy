@@ -2,7 +2,7 @@
 base="/etc/haproxy"
 backend_name=$1
 [ -z "$backend_name" ] && exit 1;
-eval $(echo $1 | sed -e 's#^\(.*\)://\(.*\):\([0-9]*\)\(/.*\)$#proto="\1";balance_type="\2";fend_port="\3";url="\4"#')
+eval $(echo -n $1 | sed -e 's#^\(.*\)://\(.*\):\([0-9]*\)\(/.*\)$#proto="\1";balance_type="\2";fend_port="\3";url="\4"#')
 
 if [  -n "$proto" -a -n "$fend_port" -a -n "$balance_type" -a -n "$url" ]; then
   path="$fend_port/$proto-$fend_port"
