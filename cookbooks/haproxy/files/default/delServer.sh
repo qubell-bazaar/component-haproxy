@@ -5,7 +5,7 @@ server_name=`md5sum <<< $server | cut -d " " -f1`
 
 server=$1
 [ -z "$server" ] && exit 1;
-eval $(echo $2 | sed -e 's#^\(.*\)://\(.*\):\([0-9]*\)\(/.*\)$#proto="\1";balance_type="\2";fend_port="\3";url="\4"#')
+eval $(echo -n $2 | sed -e 's#^\(.*\)://\(.*\):\([0-9]*\)\(/.*\)$#proto="\1";balance_type="\2";fend_port="\3";url="\4"#')
 
 if [  -n "$proto" -a -n "$fend_port" -a -n "$balance_type" -a -n "$url" ]; then
 
@@ -18,17 +18,17 @@ path="$fend_port/$proto-$fend_port"
    bend_path=`find $base/$path -type d | tail -n +2`
    #count servers in backend path
    for i in $bend_path; do
-      bend_serv_num=`find $bend_path -type f -name "server.*cfg" | wc -l`
+      bend_serv_num=`find $base/$bend_path -type f -name "server.*cfg" | wc -l`
       if [ "$bend_serv_num" -gt 1 ]; then
-        rm -rf "$bend_path/$server"
+        rm -rf "$bend_path/server.$server.cfg"
       else
-        rm -rf "$bend_path"
+        rm -rf "$base/$bend_path"
       fi
    done
  fi
  bend_num=`find "$fend_port/$proto-$fend_port" -maxdepth 1 -type d | tail -n +2 | wc -l`
  if [ $bend_num -eq 0 ]; then
-   rm -rf "$fend_port"
+   rm -rf "$base/$fend_port"
  fi
 else
 #find all servers in base
