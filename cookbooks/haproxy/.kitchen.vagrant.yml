@@ -9,22 +9,19 @@ platforms:
   - name: ubuntu-12.04
     driver:
       box: ubuntu-12-x64
-      box_url: file:///Users/jolly_rojer/Projects/Cometera/vagrant-boxes/ubuntu-12-x64.box
-
+      box_url: https://s3.amazonaws.com/vagrant-bx/ubuntu-12-x64.box
   - name: ubuntu-10.04
     driver:
       box: ubuntu-10-x64
-      box_url: file:///Users/jolly_rojer/Projects/Cometera/vagrant-boxes/ubuntu-10-x64.box
-
+      box_url: https://s3.amazonaws.com/vagrant-bx/ubuntu-10-x64.box
   - name: centos-6.4
     driver:
       box: centos_6_x64
-      box_url: file:///Users/jolly_rojer/Projects/Cometera/vagrant-boxes/centos_6_x64.box
-
+      box_url: https://s3.amazonaws.com/vagrant-bx/centos-6-x64.box
   - name: centos-5.6
     driver:
       box: centos-5-x64
-      box_url: file:///Users/jolly_rojer/Projects/Cometera/vagrant-boxes/centos-5-x64.box
+      box_url: https://s3.amazonaws.com/vagrant-bx/centos-5-x64.box
 
 suites:
   - name: default
