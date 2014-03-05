@@ -1,6 +1,6 @@
 kit:
-  name: "Component Tomcat Dev"
-  link: https://github.com/qubell-bazaar/component-tomcat-dev
+  name: "Component HAProxy"
+  link: https://github.com/qubell-bazaar/component-haproxy
   applications:
     - name: "Load Balancer"
       manifest: https://raw.github.com/qubell-bazaar/component-haproxy/master/component-haproxy.yml
