@@ -17,6 +17,7 @@ python:
 - '2.7'
 install: pip install -r test/requirements.txt
 before_script:
+- gem install --version 0.8.9 faraday --no-ri --no-rdoc
 - gem install travis-artifacts --no-ri --no-rdoc
 - git submodule update --init --recursive
 script: ./build.sh
