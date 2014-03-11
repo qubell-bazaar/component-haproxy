@@ -17,23 +17,7 @@ application:
     output:
       lb-stats: "bind(workflow#result.lb-stats)"
 
-  bindings:
-    - [workflow, wfService]
-    - [workflow, secureStore]
-
   components:
-    wfService:
-      type: reference.Service
-      interfaces:
-        executor:
-          execute-workflow: receive-command(object request => object status => object status)
-          execute-command: send-command(string interface, string command, map<string, object> arguments => map<string, object> response => map<string, object> response)
-    secureStore:
-      type: reference.Service
-      interfaces:
-        keypair-store:
-          get-keypair: receive-command(string id => object privateKey)
-
     workflow:
       type: workflow.Instance
       interfaces:
@@ -49,11 +33,6 @@ application:
 
         result:
           lb-stats: publish-signal(object)
-
-        keypair-store:
-          get-keypair: send-command(string id => object privateKey)
-
-      required: [keypair-store]
 
       configuration:
         configuration.workflows:
