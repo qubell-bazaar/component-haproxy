@@ -62,7 +62,7 @@ application:
                     jcloudsIdentity: "{$.identity}"
                     jcloudsCredential: "{$.credential}"
                     vmIdentity: ubuntu
-                    imageId: us-east-1/ami-e50b5d8c
+                    imageId: us-east-1/ami-967edcff
                     ec2SecurityGroup: default
                   output:
                     lb-host: ips
@@ -136,8 +136,3 @@ application:
                         server: "{$.app-hosts}"
                         port: "{$.app-port}"
                         bucket: "{$.lb-bucket}"
-
-          destroy:
-            steps:
-              - destroy:
-                  action: undeployEnv
