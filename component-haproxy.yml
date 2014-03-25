@@ -94,7 +94,7 @@ application:
                   phase: lb-install
                   parameters:
                     roles: [ default ]
-                    runList: ["recipe[haproxy]"]
+                    runList: ["recipe[haproxy]", "recipe[haproxy::logging]"]
                     recipeUrl: "https://s3.amazonaws.com/qubell-starter-kit-artifacts/qubell-bazaar/component-haproxy-cookbooks-stable-2db3cfa.tar.gz"
                     jattrs:
                       haproxy:
@@ -102,6 +102,10 @@ application:
                         stats_pass: "{$.stats-pass}"
                         stats_port: "{$.stats-port}"
                         stats_url: "{$.stats-url}"
+                      rsyslog:
+                        server: true
+                        protocol: udp
+                        server_ip: "127.0.0.1"
             return:
               lb-stats:
                 value:
