@@ -16,10 +16,12 @@ application:
       reconfigure-servers: "bind(workflow#actions.reconfigure-servers)"
     output:
       lb-stats: "bind(workflow#result.lb-stats)"
+      logging-dashboard: "bind(workflow#result.logging-dashboard)"
 
   bindings:
     - [workflow, wfService]
     - [workflow, secureStore]
+    - [workflow, logger]
 
   components:
     wfService:
@@ -33,6 +35,11 @@ application:
       interfaces:
         keypair-store:
           get-keypair: receive-command(string id => object privateKey)
+    logger:
+      type: reference.Service
+      interfaces:
+        logger:
+          logger-server:   publish-signal(string)
 
     workflow:
       type: workflow.Instance
@@ -49,11 +56,15 @@ application:
 
         result:
           lb-stats: publish-signal(object)
+          logging-dashboard: publish-signal(string)
 
         keypair-store:
           get-keypair: send-command(string id => object privateKey)
 
-      required: [keypair-store]
+        logger:
+          logger-server: consume-signal(string)
+
+      required: [keypair-store, logger]
 
       configuration:
         configuration.workflows:
@@ -70,7 +81,7 @@ application:
 
             steps:
               - provision-vm:
-                  action: provisionAmazonVm
+                  action: provisionVmsWithLogging
                   phase: provision
                   parameters:
                     roleName: default
@@ -87,14 +98,23 @@ application:
                     ec2SecurityGroup: default
                   output:
                     lb-host: ips
+                    logging-dashboard: logging-dashboard
+
+              - enable-logging:
+                  action: registerLogPath
+                  phase: post-provision
+                  precedingPhases: [provision]
+                  parameters:
+                    roles: [default]
+                    paths: ["/var/log/haproxy.log"]
 
               - lb-install:
                   action: "chefsolo"
-                  precedingPhases: [ provision ]
+                  precedingPhases: [ provision, post-provision ]
                   phase: lb-install
                   parameters:
                     roles: [ default ]
-                    runList: ["recipe[haproxy]"]
+                    runList: ["recipe[haproxy]", "recipe[haproxy::logging]"]
                     recipeUrl: "https://s3.amazonaws.com/qubell-starter-kit-artifacts/qubell-bazaar/component-haproxy-cookbooks-stable-2db3cfa.tar.gz"
                     jattrs:
                       haproxy:
@@ -102,6 +122,10 @@ application:
                         stats_pass: "{$.stats-pass}"
                         stats_port: "{$.stats-port}"
                         stats_url: "{$.stats-url}"
+                      rsyslog:
+                        server: true
+                        protocol: udp
+                        server_ip: "127.0.0.1"
             return:
               lb-stats:
                 value:
@@ -109,6 +133,8 @@ application:
                   lb-statistics-url: "http://{$.lb-host}:{$.stats-port}{$.stats-url}"
                   stats-user: "{$.stats-user}"
                   stats-pass: "{$.stats-pass}"
+              logging-dashboard:
+                value: "{$.logging-dashboard}"
 
           add-servers:
             parameters:
