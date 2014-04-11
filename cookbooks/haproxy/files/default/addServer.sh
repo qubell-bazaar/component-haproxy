@@ -1,6 +1,6 @@
 #!/bin/bash -x
 server=$1
-eval $(echo $2 | sed -e 's#^\(.*\)://\(.*\):\([0-9]*\)\(/.*\)$#proto="\1";balance_type="\2";fend_port="\3";url="\4"#')
+eval $(echo -n $2 | sed -e 's#^\(.*\)://\(.*\):\([0-9]*\)\(/.*\)$#proto="\1";balance_type="\2";fend_port="\3";url="\4"#')
 
 base="/etc/haproxy"
 backend_name=`md5sum <<< $proto$fend_port$url | cut -d " " -f1`

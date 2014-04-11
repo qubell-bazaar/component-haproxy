@@ -1,0 +1,52 @@
+---
+driver:
+  name: vagrant
+
+provisioner:
+  name: chef_solo
+
+platforms:
+  - name: ubuntu-12.04
+    driver:
+      box: ubuntu-12-x64
+      box_url: https://s3.amazonaws.com/vagrant-bx/ubuntu-12-x64.box
+  - name: ubuntu-10.04
+    driver:
+      box: ubuntu-10-x64
+      box_url: https://s3.amazonaws.com/vagrant-bx/ubuntu-10-x64.box
+  - name: centos-6.4
+    driver:
+      box: centos_6_x64
+      box_url: https://s3.amazonaws.com/vagrant-bx/centos-6-x64.box
+  - name: centos-5.6
+    driver:
+      box: centos-5-x64
+      box_url: https://s3.amazonaws.com/vagrant-bx/centos-5-x64.box
+
+suites:
+  - name: default
+    run_list:
+      - recipe[haproxy_component_test::default]
+    attributes:
+  - name: add-servers
+    run_list:
+      - recipe[haproxy_component_test::add_servers]
+    attributes: { 
+                  haproxy: { 
+                    server: ["192.168.133.11", "192.168.133.12"],
+                    port: "8080",
+                    bucket: "http://roundrobin:80/"
+                  }
+                }
+  - name: del-servers
+    run_list:
+      - recipe[haproxy::default]
+      - recipe[haproxy_component_test::add_servers]
+      - recipe[haproxy_component_test::del_servers]
+    attributes: { 
+                  haproxy: { 
+                    server: ["192.168.133.11", "192.168.133.12"],
+                    port: "8080",
+                    bucket: "http://roundrobin:80/"
+                  }
+                }

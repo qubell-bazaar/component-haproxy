@@ -1,0 +1,83 @@
+---
+driver:
+  name: ec2
+  aws_access_key_id: "<%= ENV['AWS_ACCESS_KEY'] %>"
+  aws_secret_access_key: "<%= ENV['AWS_SECRET_KEY'] %>"
+  aws_ssh_key_id: "<%= ENV['AWS_SSH_KEY_ID'] %>"
+  ssh_key: <%= File.expand_path('./.ssh/tkitchen') %>
+  security_group_ids: ["default"]
+  security_group_ids: default
+  availability_zone: ""
+  require_chef_omnibus: "10.16.2"
+  tags:
+    "created-by": "test-kitchen"
+
+use_vagrant_berkshelf_plugin: true
+
+provisioner:
+  name: chef_solo
+
+platforms:
+  - name: ubuntu-12.04
+    driver:
+      image_id: ami-967edcff
+      username: ubuntu
+      flavor_id: "m1.small"
+      tags:
+        Name: haproxy-ct-Ubuntu-12.04
+        owner_name: test-kitchen
+
+  - name: ubuntu-10.04
+    driver:
+      image_id: ami-9f3906f6
+      username: ubuntu
+      flavor_id: "m1.small"
+      tags:
+        Name: haproxy-ct-Ubuntu-10.04
+        owner_name: test-kitchen
+
+  - name: centos-6.4
+    driver:
+      image_id: ami-bf5021d6
+      username: root
+      flavor_id: "m1.small"
+      tags:
+        Name: haproxy-ct-CentOS-6.4
+        owner_name: test-kitchen
+
+  - name: centos-5.3
+    driver:
+      image_id: ami-beda31d7
+      username: root
+      flavor_id: "m1.small"
+      tags:
+        Name: haproxy-ct-CentOS-5.3
+        owner_name: test-kitchen
+
+suites:
+  - name: default
+    run_list:
+      - recipe[haproxy_component_test::default]
+    attributes:
+  - name: add-servers
+    run_list:
+      - recipe[haproxy_component_test::add_servers]
+    attributes: { 
+                  haproxy: { 
+                    server: ["192.168.133.11", "192.168.133.12"],
+                    port: "8080",
+                    bucket: "http://roundrobin:80/"
+                  }
+                }
+  - name: del-servers
+    run_list:
+      - recipe[haproxy::default]
+      - recipe[haproxy_component_test::add_servers]
+      - recipe[haproxy_component_test::del_servers]
+    attributes: { 
+                  haproxy: { 
+                    server: ["192.168.133.11", "192.168.133.12"],
+                    port: "8080",
+                    bucket: "http://roundrobin:80/"
+                  }
+                }
