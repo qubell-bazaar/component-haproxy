@@ -61,8 +61,8 @@ application:
                     jcloudsNodeNamePrefix: component
                     jcloudsIdentity: "{$.identity}"
                     jcloudsCredential: "{$.credential}"
-                    vmIdentity: ubuntu
-                    imageId: us-east-1/ami-967edcff
+                    vmIdentity: ec2-user
+                    imageId: us-east-1/ami-6b726502
                     ec2SecurityGroup: default
                   output:
                     lb-host: ips
