@@ -62,7 +62,7 @@ application:
                     jcloudsIdentity: "{$.identity}"
                     jcloudsCredential: "{$.credential}"
                     vmIdentity: ec2-user
-                    imageId: us-east-1/ami-6b726502
+                    imageId: us-east-1/ami-1ba18d72
                     ec2SecurityGroup: default
                   output:
                     lb-host: ips
