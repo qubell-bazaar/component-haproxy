@@ -6,3 +6,8 @@
 
 # Python files
 *.pyc
+
+*.bak
+berks/
+Berksfile.lock
+*.tar.gz
