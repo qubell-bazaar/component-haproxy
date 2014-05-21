@@ -1,12 +1,3 @@
-[submodule "cookbooks/openssl"]
-	path = cookbooks/openssl
-	url = https://github.com/opscode-cookbooks/openssl.git
-[submodule "cookbooks/apt"]
-	path = cookbooks/apt
-	url = https://github.com/opscode-cookbooks/apt.git
 [submodule "component-skeleton"]
 	path = component-skeleton
 	url = https://github.com/qubell-bazaar/component-skeleton.git
-[submodule "cookbooks/yum"]
-	path = cookbooks/yum
-	url = https://github.com/opscode-cookbooks/yum.git
