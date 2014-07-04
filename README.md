@@ -15,8 +15,8 @@ Features
 
 Configurations
 --------------
-[![Build Status](https://travis-ci.org/qubell-bazaar/component-haproxy.png?branch=master)](https://travis-ci.org/qubell-bazaar/component-haproxy)
-
+[![Build Status](http://jenkins.dev.qubell.com:8080/buildStatus/icon?job=haproxy-component-upstream)](http://jenkins.dev.qubell.com:8080/view/Bazaar-Components/view/component-haproxy-dev/job/haproxy-component-upstream/)
+ 
  - HAProxy *** (latest), CentOS 6.3 (us-east-1/ami-eb6b0182), AWS EC2 m1.small, root
  - HAProxy *** (latest), CentOS 5.3 (us-east-1/ami-beda31d7), AWS EC2 m1.small, root
  - HAProxy *** (latest), Ubuntu 12.04 (us-east-1/ami-d0f89fb9), AWS EC2 m1.small, root
