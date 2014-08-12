@@ -1,20 +1,26 @@
+#### Haproxy Load Balancer ####
 application:
   configuration:
+    input.operation-system: {image: "us-east-1/ami-1ba18d72", identity: ec2-user}
     input.stats-user: admin
     input.stats-pass: pa55w0rd
     input.stats-port: "1926"
     input.stats-url: /admin?stats
+    input.instance-size: "m1.small"
+    input.recipe-url: "https://s3.amazonaws.com/qubell-starter-kit-artifacts/qubell-bazaar/component-haproxy-cookbooks-stable-2423c50.tar.gz"
 
   interfaces:
     input:
+      operation-system: "bind(workflow#input.operation-system)"
       stats-user: "bind(workflow#input.stats-user)"
       stats-pass: "bind(workflow#input.stats-pass)"
       stats-port: "bind(workflow#input.stats-port)"
       stats-url: "bind(workflow#input.stats-url)"
-    lb-manage:
+      instance-size: "bind(workflow#input.instance-size)"
+      recipe-url: "bind(workflow#input.recipe-url)"
+    haproxy:
       add-servers: "bind(workflow#actions.add-servers)"
       reconfigure-servers: "bind(workflow#actions.reconfigure-servers)"
-    output:
       lb-stats: "bind(workflow#result.lb-stats)"
 
   components:
@@ -22,48 +28,55 @@ application:
       type: workflow.Instance
       interfaces:
         input:
-          stats-user: configuration(string)
-          stats-pass: configuration(string)
-          stats-port: configuration(string)
-          stats-url: configuration(string)
-
+          operation-system:
+             type: configuration(map<string,object>)
+             suggestions:
+                 "centos": {image: "us-east-1/ami-bf5021d6", identity: root}
+                 "amazon": {image: "us-east-1/ami-1ba18d72", identity: ec2-user}
+                 "ubuntu1204": {image: "us-east-1/ami-967edcff", identity: ubuntu}
+                 "ubuntu1004": {image: "us-east-1/ami-9f3906f6", identity: ubuntu}
+          stats-user:
+             type: configuration(string)
+             name: Haproxy Statistics page User
+          stats-pass:
+             type: configuration(string)
+             name: Haproxy Statistics page User Password
+          stats-port:
+             type: configuration(string)
+             name: Haproxy Statistics page port
+          stats-url:
+             type: configuration(string)
+             name: Haproxy Statistics page Url
+          recipe-url:
+             type: configuration(string)
+             name: Chef cookbooks Url
+          instance-size:
+             type: configuration(string)
+             name: EC2 instance type
         actions:
-          add-servers: receive-command(list<string> app-hosts, string app-port, string lb-bucket => string entry-url)
-          reconfigure-servers: receive-command(list<string> app-hosts, string app-port, string lb-bucket)
-
+          add-servers:
+             type: receive-command(list<string> app-hosts, string app-port, string lb-bucket => string entry-url)
+             name: Add Servers
+          reconfigure-servers:
+             type: receive-command(list<string> app-hosts, string app-port, string lb-bucket)
+             name: Reconfigure Servers
         result:
-          lb-stats: publish-signal(object)
+          lb-stats:
+             type: publish-signal(object)
+             name: Haproxy statistics
 
       configuration:
         configuration.workflows:
           launch:
-            parameters:
-              - stats-user: &stats-user
-                  description: haproxy statistics user
-              - stats-pass: &stats-pass
-                  description: haproxy statistics user pass
-              - stats-port: &stats-port
-                  description: haproxy statistics port 
-              - stats-url: &stats-url
-                  description: haproxy statistics url
-
             steps:
               - provision-vm:
-                  action: provisionAmazonVm
+                  action: provisionVms
                   phase: provision
                   parameters:
                     roleName: default
-                    hardwareId: m1.small
-                    retryCount: 1
-                    jcloudsProvider: aws-ec2
-                    jcloudsEndpoint: https://ec2.us-east-1.amazonaws.com
-                    jcloudsRegions: us-east-1
-                    jcloudsNodeNamePrefix: component
-                    jcloudsIdentity: "{$.identity}"
-                    jcloudsCredential: "{$.credential}"
-                    vmIdentity: ec2-user
-                    imageId: us-east-1/ami-1ba18d72
-                    ec2SecurityGroup: default
+                    hardwareId: "{$.instance-size}"
+                    vmIdentity: "{$.operation-system.identity}"
+                    imageId: "{$.operation-system.image}"
                   output:
                     lb-host: ips
 
@@ -74,7 +87,7 @@ application:
                   parameters:
                     roles: [ default ]
                     runList: ["recipe[haproxy]"]
-                    recipeUrl: "https://s3.amazonaws.com/qubell-starter-kit-artifacts/qubell-bazaar/component-haproxy-cookbooks-stable-2423c50.tar.gz"
+                    recipeUrl: "{$.recipe-url}"
                     jattrs:
                       haproxy:
                         stats_user: "{$.stats-user}"
@@ -90,21 +103,13 @@ application:
                   stats-pass: "{$.stats-pass}"
 
           add-servers:
-            parameters:
-              - app-hosts:
-                  description: "server:port add to lb"
-              - app-port:
-                  description: "application port to lb"
-              - lb-bucket:
-                  description: "lb bucket (proto://lb-type:port)for app-hosts"
-
             steps:
               - add-servers:
                   action: "chefsolo"
                   parameters:
                     roles: [ default ]
                     runList: [ "recipe[haproxy::add_servers]" ]
-                    recipeUrl: "https://s3.amazonaws.com/qubell-starter-kit-artifacts/qubell-bazaar/component-haproxy-cookbooks-stable-2423c50.tar.gz"
+                    recipeUrl: "{$.recipe-url}"
                     jattrs:
                       haproxy:
                         server: "{$.app-hosts}"
@@ -116,21 +121,13 @@ application:
                 value: "http://{$.lb-stats.lb-host}"
 
           reconfigure-servers:
-            parameters:
-              - app-hosts:
-                  description: "server:port add to lb"
-              - app-port:
-                  description: "application port to lb"
-              - lb-bucket:
-                  description: "lb bucket (proto://lb-type:port)for app-hosts"
-
             steps:
               - reconfigure-servers:
                   action: "chefsolo"
                   parameters:
                     roles: [ default ]
                     runList: [ "recipe[haproxy::reconfigure]" ]
-                    recipeUrl: "https://s3.amazonaws.com/qubell-starter-kit-artifacts/qubell-bazaar/component-haproxy-cookbooks-stable-2423c50.tar.gz"
+                    recipeUrl: "{$.recipe-url}"
                     jattrs:
                       haproxy:
                         server: "{$.app-hosts}"
