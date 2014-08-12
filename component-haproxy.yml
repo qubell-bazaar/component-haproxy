@@ -1,7 +1,7 @@
 #### Haproxy Load Balancer ####
 application:
   configuration:
-    input.operation-system: {image: "us-east-1/ami-1ba18d72", identity: ec2-user}
+    input.operating-system: {image: "us-east-1/ami-1ba18d72", identity: ec2-user}
     input.stats-user: admin
     input.stats-pass: pa55w0rd
     input.stats-port: 1926
@@ -11,7 +11,7 @@ application:
 
   interfaces:
     input:
-      operation-system: "bind(workflow#input.operation-system)"
+      operating-system: "bind(workflow#input.operating-system)"
       stats-user: "bind(workflow#input.stats-user)"
       stats-pass: "bind(workflow#input.stats-pass)"
       stats-port: "bind(workflow#input.stats-port)"
@@ -28,7 +28,7 @@ application:
       type: workflow.Instance
       interfaces:
         input:
-          operation-system:
+          operating-system:
              type: configuration(map<string,object>)
              suggestions:
                  "centos": {image: "us-east-1/ami-bf5021d6", identity: root}
@@ -75,8 +75,8 @@ application:
                   parameters:
                     roleName: default
                     hardwareId: "{$.instance-size}"
-                    vmIdentity: "{$.operation-system.identity}"
-                    imageId: "{$.operation-system.image}"
+                    vmIdentity: "{$.operating-system.identity}"
+                    imageId: "{$.operating-system.image}"
                   output:
                     lb-host: ips
 
