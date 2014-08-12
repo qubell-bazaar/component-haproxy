@@ -4,7 +4,7 @@ application:
     input.operation-system: {image: "us-east-1/ami-1ba18d72", identity: ec2-user}
     input.stats-user: admin
     input.stats-pass: pa55w0rd
-    input.stats-port: "1926"
+    input.stats-port: 1926
     input.stats-url: /admin?stats
     input.instance-size: "m1.small"
     input.recipe-url: "https://s3.amazonaws.com/qubell-starter-kit-artifacts/qubell-bazaar/component-haproxy-cookbooks-stable-9943da6.tar.gz"
@@ -42,7 +42,7 @@ application:
              type: configuration(string)
              name: Haproxy Statistics page User Password
           stats-port:
-             type: configuration(string)
+             type: configuration(int)
              name: Haproxy Statistics page port
           stats-url:
              type: configuration(string)
@@ -55,10 +55,10 @@ application:
              name: EC2 instance type
         actions:
           add-servers:
-             type: receive-command(list<string> app-hosts, string app-port, string lb-bucket => string entry-url)
+             type: receive-command(list<string> app-hosts, int app-port, string lb-bucket => string entry-url)
              name: Add Servers
           reconfigure-servers:
-             type: receive-command(list<string> app-hosts, string app-port, string lb-bucket)
+             type: receive-command(list<string> app-hosts, int app-port, string lb-bucket)
              name: Reconfigure Servers
         result:
           lb-stats:
