@@ -7,7 +7,7 @@ application:
     input.stats-port: "1926"
     input.stats-url: /admin?stats
     input.instance-size: "m1.small"
-    input.recipe-url: "https://s3.amazonaws.com/qubell-starter-kit-artifacts/qubell-bazaar/component-haproxy-cookbooks-stable-2423c50.tar.gz"
+    input.recipe-url: "https://s3.amazonaws.com/qubell-starter-kit-artifacts/qubell-bazaar/component-haproxy-cookbooks-stable-9943da6.tar.gz"
 
   interfaces:
     input:
