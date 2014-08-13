@@ -1,14 +1,20 @@
 #### Haproxy Load Balancer ####
 application:
+# Input Configuration parameters.
+# In this section you can set input configuration parameters which you
+# will be able to change later in reconfiguration
   configuration:
-    input.operating-system: {image: "us-east-1/ami-1ba18d72", identity: ec2-user}
-    input.stats-user: admin
-    input.stats-pass: pa55w0rd
-    input.stats-port: 1926
-    input.stats-url: /admin?stats
-    input.instance-size: "m1.small"
-    input.recipe-url: "https://s3.amazonaws.com/qubell-starter-kit-artifacts/qubell-bazaar/component-haproxy-cookbooks-stable-a9f11a1.tar.gz"
+    input.operating-system: {image: "us-east-1/ami-1ba18d72", identity: ec2-user} # image/identity pair for describing Operating system.
+    input.stats-user: admin # Haproxy Statistics page User
+    input.stats-pass: pa55w0rd # Haproxy Statistics page User Password
+    input.stats-port: 1926 # Haproxy Statistics page port
+    input.stats-url: /admin?stats # Haproxy Statistics page Url
+    input.instance-size: "t2.small" # EC2 Instance type
+    input.recipe-url: "https://s3.amazonaws.com/qubell-starter-kit-artifacts/qubell-bazaar/component-haproxy-cookbooks-stable-a9f11a1.tar.gz" # Chef Cookbooks Url
 
+# Application Interfaces binding section.
+# Here we describe a interfaces with pins  and their bindings on  component's  interfaces.
+# For binding using function bind(Component1#interface.pin, Component2#interface.pin)
   interfaces:
     input:
       operating-system: "bind(workflow#input.operating-system)"
