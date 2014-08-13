@@ -9,7 +9,7 @@ application:
     input.stats-pass: pa55w0rd # Haproxy Statistics page User Password
     input.stats-port: 1926 # Haproxy Statistics page port
     input.stats-url: /admin?stats # Haproxy Statistics page Url
-    input.instance-size: "t2.small" # EC2 Instance type
+    input.instance-size: "m1.small" # EC2 Instance type
     input.recipe-url: "https://s3.amazonaws.com/qubell-starter-kit-artifacts/qubell-bazaar/component-haproxy-cookbooks-stable-a9f11a1.tar.gz" # Chef Cookbooks Url
 
 # Application Interfaces binding section.
