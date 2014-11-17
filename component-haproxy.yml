@@ -24,12 +24,27 @@ application:
       stats-url: "bind(workflow#input.stats-url)"
       instance-size: "bind(workflow#input.instance-size)"
       recipe-url: "bind(workflow#input.recipe-url)"
+    app-meta:
+      application-pic: "bind(metadata#output.application-pic)"
     haproxy:
       add-servers: "bind(workflow#actions.add-servers)"
       reconfigure-servers: "bind(workflow#actions.reconfigure-servers)"
       lb-stats: "bind(workflow#result.lb-stats)"
 
   components:
+    metadata:
+      type: cobalt.common.Constants
+      interfaces:
+        output:
+          application-pic:
+            type: publish-signal(map<string, object>)
+            name: ""
+      configuration:
+        configuration.values:
+          output.application-pic:
+            large: "https://s3.amazonaws.com/qubell-images/haproxy.png"
+            small: "https://s3.amazonaws.com/qubell-images/haproxy.png"
+            small-height: 78
     workflow:
       type: workflow.Instance
       interfaces:
@@ -43,33 +58,33 @@ application:
                  "ubuntu1004": {image: "us-east-1/ami-9f3906f6", identity: ubuntu}
           stats-user:
              type: configuration(string)
-             name: Haproxy Statistics page User
+             name: HAProxy stats user
           stats-pass:
              type: configuration(string)
-             name: Haproxy Statistics page User Password
+             name: Haproxy stats password
           stats-port:
              type: configuration(int)
-             name: Haproxy Statistics page port
+             name: Haproxy stats port
           stats-url:
              type: configuration(string)
-             name: Haproxy Statistics page Url
+             name: Haproxy stats
           recipe-url:
              type: configuration(string)
-             name: Chef cookbooks Url
+             name: Chef cookbooks
           instance-size:
              type: configuration(string)
              name: EC2 instance type
         actions:
           add-servers:
              type: receive-command(list<string> app-hosts, int app-port, string lb-bucket => string entry-url)
-             name: Add Servers
+             name: Add servers
           reconfigure-servers:
              type: receive-command(list<string> app-hosts, int app-port, string lb-bucket)
-             name: Reconfigure Servers
+             name: Reconfigure servers
         result:
           lb-stats:
              type: publish-signal(object)
-             name: Haproxy statistics
+             name: HAProxy stats
 
       configuration:
         configuration.workflows:
