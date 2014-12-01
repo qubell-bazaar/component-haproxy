@@ -11,3 +11,5 @@
 berks/
 Berksfile.lock
 *.tar.gz
+.lime-env/
+report.xml
