@@ -58,6 +58,9 @@ class HAProxyComponentTestCase(BaseComponentTestCase):
         "file": os.path.realpath(os.path.join(os.path.dirname(__file__), '../%s.yml' % name))
     }]
 
+    @classmethod
+    def timeout(cls):
+        return 30
 
     @instance(byApplication=name)
     @values({"lb-statistics-url": "url", "stats-user": "user", "stats-pass": "password"})

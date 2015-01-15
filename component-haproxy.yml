@@ -1,112 +1,84 @@
-#### Haproxy Load Balancer ####
+# Haproxy Load Balancer
 application:
-# Input Configuration parameters.
-# In this section you can set input configuration parameters which you
-# will be able to change later in reconfiguration
   configuration:
-    input.operating-system: {image: "us-east-1/ami-1ba18d72", identity: ec2-user} # image/identity pair for describing Operating system.
-    input.stats-user: admin # Haproxy Statistics page User
-    input.stats-pass: pa55w0rd # Haproxy Statistics page User Password
-    input.stats-port: 1926 # Haproxy Statistics page port
-    input.stats-url: /admin?stats # Haproxy Statistics page Url
-    input.instance-size: "m1.small" # EC2 Instance type
-    input.recipe-url: "https://s3.amazonaws.com/qubell-starter-kit-artifacts/qubell-bazaar/component-haproxy-cookbooks-stable-7f70922.tar.gz" # Chef Cookbooks Url
-
-# Application Interfaces binding section.
-# Here we describe a interfaces with pins  and their bindings on  component's  interfaces.
-# For binding using function bind(Component1#interface.pin, Component2#interface.pin)
+    configuration.stats-user: admin
+    configuration.stats-pass: pa55w0rd
+    configuration.stats-port: 1926
+    configuration.stats-url:  /admin?stats
+    configuration.recipe-url: "https://s3.amazonaws.com/qubell-starter-kit-artifacts/qubell-bazaar/component-haproxy-cookbooks-stable-99999.tar.gz"
+    configuration.lb-bucket: "http://roundrobin:80/"
+    compute.hardwareId: "c3.large"
+    compute.imageId:    "ami-246ed34c"
+    compute.login:      "ec2-user"
+    compute.locationId: "us-east-1"
   interfaces:
-    input:
-      operating-system: "bind(workflow#input.operating-system)"
-      stats-user: "bind(workflow#input.stats-user)"
-      stats-pass: "bind(workflow#input.stats-pass)"
-      stats-port: "bind(workflow#input.stats-port)"
-      stats-url: "bind(workflow#input.stats-url)"
-      instance-size: "bind(workflow#input.instance-size)"
-      recipe-url: "bind(workflow#input.recipe-url)"
-    app-meta:
-      application-pic: "bind(metadata#output.application-pic)"
+    configuration:
+      "*": "bind(workflow#input.*)"
+    compute:
+      hardwareId: "bind(compute#configuration.hardwareId)"
+      imageId:    "bind(compute#configuration.imageId)"
+      login:      "bind(compute#configuration.login)"
+      locationId: "bind(compute#configuration.locationId)"
+    servers:
+      "*": "bind(workflow#servers.*)"
     haproxy:
-      add-servers: "bind(workflow#actions.add-servers)"
-      reconfigure-servers: "bind(workflow#actions.reconfigure-servers)"
-      lb-stats: "bind(workflow#result.lb-stats)"
-
+      "*": "bind(workflow#result.*)"
   components:
-    metadata:
-      type: cobalt.common.Constants
-      interfaces:
-        output:
-          application-pic:
-            type: publish-signal(map<string, object>)
-            name: ""
-      configuration:
-        configuration.values:
-          output.application-pic:
-            large: "https://s3.amazonaws.com/qubell-images/haproxy.png"
-            small: "https://s3.amazonaws.com/qubell-images/haproxy.png"
-            small-height: 78
     workflow:
       type: workflow.Instance
       interfaces:
         input:
-          operating-system:
-             type: configuration(map<string,object>)
-             suggestions:
-                 "centos": {image: "us-east-1/ami-bf5021d6", identity: root}
-                 "amazon": {image: "us-east-1/ami-1ba18d72", identity: ec2-user}
-                 "ubuntu1204": {image: "us-east-1/ami-967edcff", identity: ubuntu}
-                 "ubuntu1004": {image: "us-east-1/ami-9f3906f6", identity: ubuntu}
-          stats-user:
-             type: configuration(string)
-             name: HAProxy stats user
-          stats-pass:
-             type: configuration(string)
-             name: Haproxy stats password
-          stats-port:
-             type: configuration(int)
-             name: Haproxy stats port
-          stats-url:
-             type: configuration(string)
-             name: Haproxy stats
-          recipe-url:
-             type: configuration(string)
-             name: Chef cookbooks
-          instance-size:
-             type: configuration(string)
-             name: EC2 instance type
+          stats-user: { type: configuration(string), name: Haproxy Statistics User     }
+          stats-pass: { type: configuration(string), name: Haproxy Statistics Password }
+          stats-port: { type: configuration(int),    name: Haproxy Statistics Port     }
+          stats-url:  { type: configuration(string), name: Haproxy Statistics Url      }
+          recipe-url: { type: configuration(string), name: Chef Cookbooks Url          }
+          lb-bucket:  { type: configuration(string), name: Haproxy bucket              }
+        compute:
+          networks:        consume-signal(map<string, map<string, string>>)
+          exec:            send-command(string command, int timeout => string stdOut, string stdErr => string stdOut, string stdErr, int exitCode)
+          put-file:        send-command(string filename, bytes payload)
+          get-file:        send-command(string filename => bytes payload)
+        servers:
+          app-host: consume-signal(string)
+          app-uri: consume-signal(string)
         actions:
-          add-servers:
-             type: receive-command(list<string> app-hosts, int app-port, string lb-bucket => string entry-url)
-             name: Add servers
-          reconfigure-servers:
-             type: receive-command(list<string> app-hosts, int app-port, string lb-bucket)
-             name: Reconfigure servers
+          update: receive-command()
         result:
-          lb-stats:
-             type: publish-signal(object)
-             name: HAProxy stats
-
+          lb-stats:  { type: publish-signal(object), name: HAProxy stats      }
+          stats-url: { type: publish-signal(string), name: Haproxy statistics }
+          entry-url: { type: publish-signal(string), name: Entry url          }
+      required: [ compute ]
       configuration:
+        configuration.triggers:
+          input.stats-user: update
+          input.stats-pass: update
+          input.stats-port: update
+          input.stats-url:  update
+          input.recipe-url: update
+          input.lb-bucket:  update
+          compute.networks: update
+          servers.app-uri: reconfigure-servers
+        configuration.propagateStatus: [ update, reconfigure-servers]
         configuration.workflows:
-          launch:
+          update: &update
             steps:
-              - provision-vm:
-                  action: provisionVms
-                  phase: provision
-                  parameters:
-                    roleName: default
-                    hardwareId: "{$.instance-size}"
-                    vmIdentity: "{$.operating-system.identity}"
-                    imageId: "{$.operating-system.image}"
+              - get-signals:
+                  action: getSignals
                   output:
-                    lb-host: ips
-
+                    signals: result
+              - get-signals-multi:
+                  action: getSignals
+                  parameters:
+                    multi: true
+                  output:
+                    peers: result
               - lb-install:
                   action: "chefsolo"
-                  precedingPhases: [ provision ]
+                  precedingPhases: [ get-signals, get-signals-multi ]
                   phase: lb-install
                   parameters:
-                    roles: [ default ]
+                    roles: [ compute ]
                     runList: ["recipe[haproxy]"]
                     recipeUrl: "{$.recipe-url}"
                     jattrs:
@@ -115,42 +87,54 @@ application:
                         stats_pass: "{$.stats-pass}"
                         stats_port: "{$.stats-port}"
                         stats_url: "{$.stats-url}"
-            return:
-              lb-stats:
-                value:
-                  lb-host: "{$.lb-host[0]}"
-                  lb-statistics-url: "http://{$.lb-host}:{$.stats-port}{$.stats-url}"
-                  stats-user: "{$.stats-user}"
-                  stats-pass: "{$.stats-pass}"
-
-          add-servers:
-            steps:
               - add-servers:
                   action: "chefsolo"
+                  precedingPhases: [ lb-install ]
                   parameters:
-                    roles: [ default ]
+                    roles: [ compute ]
                     runList: [ "recipe[haproxy::add_servers]" ]
                     recipeUrl: "{$.recipe-url}"
                     jattrs:
                       haproxy:
-                        server: "{$.app-hosts}"
-                        port: "{$.app-port}"
+                        server_uri: "{$.peers.servers.*.app-uri}"
                         bucket: "{$.lb-bucket}"
             return:
+              lb-stats:
+                value:
+                  lb-host: "{$.signals.compute.networks.public.ip}"
+                  lb-statistics-url: "http://{$.signals.compute.networks.public.ip}:{$.stats-port}{$.stats-url}"
+                  stats-user: "{$.stats-user}"
+                  stats-pass: "{$.stats-pass}"
+              stats-url: 
+                    value: "http://{$.stats-user}:{$.stats-pass}@{$.signals.compute.networks.public.ip}:{$.stats-port}{$.stats-url}"
               entry-url:
-                #this url should depend on lb-bucket and generated somewhere inside
-                value: "http://{$.lb-stats.lb-host}"
-
+                    value: "http://{$.signals.compute.networks.public.ip}"
+          launch: *update
+          
           reconfigure-servers:
             steps:
+              - get-signals:
+                  action: getSignals
+                  output:
+                    signals: result
+              - get-signals-multi:
+                  action: getSignals
+                  parameters:
+                    multi: true
+                  output:
+                    peers: result
               - reconfigure-servers:
                   action: "chefsolo"
                   parameters:
-                    roles: [ default ]
+                    roles: [ compute ]
                     runList: [ "recipe[haproxy::reconfigure]" ]
                     recipeUrl: "{$.recipe-url}"
                     jattrs:
                       haproxy:
-                        server: "{$.app-hosts}"
-                        port: "{$.app-port}"
+                        server_uri: "{$.peers.servers.*.app-uri}"
                         bucket: "{$.lb-bucket}"
+          
+    compute:
+      type: compute.Instance
+  bindings:
+   - [workflow#compute, compute]
