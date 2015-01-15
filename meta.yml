@@ -3,7 +3,7 @@ kit:
   link: https://github.com/qubell-bazaar/component-haproxy
   applications:
     - name: "Load Balancer"
-      manifest: https://raw.github.com/qubell-bazaar/component-haproxy/1.1-35p/component-haproxy.yml
+      manifest: https://raw.github.com/qubell-bazaar/component-haproxy/2.0-36p/component-haproxy.yml
   provider:
     name: "Qubell"
     link: http://qubell.com
