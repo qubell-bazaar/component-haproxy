@@ -125,6 +125,7 @@ application:
                     peers: result
               - reconfigure-servers:
                   action: "chefsolo"
+                  precedingPhases: [get-signals, get-signals-multi]
                   parameters:
                     roles: [ compute ]
                     runList: [ "recipe[haproxy::reconfigure]" ]
