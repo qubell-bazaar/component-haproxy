@@ -5,8 +5,10 @@ application:
     configuration.stats-pass: pa55w0rd
     configuration.stats-port: 1926
     configuration.stats-url:  /admin?stats
-    configuration.recipe-url: "https://s3.amazonaws.com/qubell-starter-kit-artifacts/qubell-bazaar/component-haproxy-cookbooks-stable-ca8d612.tar.gz"
-    configuration.lb-bucket: "http://roundrobin:80/"
+    configuration.recipe-url: "https://s3.amazonaws.com/qubell-starter-kit-artifacts/qubell-bazaar/component-haproxy-cookbooks-stable-999999.tar.gz"
+    configuration.bucket_proto: "http"
+    configuration.bucket_type: "roundrobin"
+    configuration.bucket_port: 80
     compute.hardwareId: "c3.large"
     compute.imageId:    "ami-246ed34c"
     compute.login:      "ec2-user"
@@ -33,7 +35,9 @@ application:
           stats-port: { type: configuration(int),    name: Haproxy Statistics Port     }
           stats-url:  { type: configuration(string), name: Haproxy Statistics Url      }
           recipe-url: { type: configuration(string), name: Chef Cookbooks Url          }
-          lb-bucket:  { type: configuration(string), name: Haproxy bucket              }
+          bucket_proto:  { type: configuration(string), name: Haproxy bucket proto              }
+          bucket_type:  { type: configuration(string), name: Haproxy bucket type        }
+          bucket_port:  { type: configuration(int), name: Haproxy bucket port             }
         compute:
           networks:        consume-signal(map<string, map<string, string>>)
           exec:            send-command(string command, int timeout => string stdOut, string stdErr => string stdOut, string stdErr, int exitCode)
@@ -41,13 +45,13 @@ application:
           get-file:        send-command(string filename => bytes payload)
         servers:
           app-host: consume-signal(string)
-          app-uri: consume-signal(string)
+          app-uri: consume-signal(list<string>)
         actions:
           update: receive-command()
         result:
           lb-stats:  { type: publish-signal(object), name: HAProxy stats      }
           stats-url: { type: publish-signal(string), name: Haproxy statistics }
-          entry-url: { type: publish-signal(string), name: Entry url          }
+          entry-urls: { type: publish-signal(list<string>), name: Entry url          }
       required: [ compute ]
       configuration:
         configuration.triggers:
@@ -56,7 +60,9 @@ application:
           input.stats-port: update
           input.stats-url:  update
           input.recipe-url: update
-          input.lb-bucket:  update
+          input.bucket_proto:  update
+          input.bucket_type:  update
+          input.bucket_port:  update
           compute.networks: update
           servers.app-uri: reconfigure-servers
         configuration.propagateStatus: [ update, reconfigure-servers]
@@ -96,8 +102,13 @@ application:
                     recipeUrl: "{$.recipe-url}"
                     jattrs:
                       haproxy:
+                        host: "{$.signals.compute.networks.public.ip}"
                         server_uri: "{$.peers.servers.*.app-uri}"
-                        bucket: "{$.lb-bucket}"
+                        bucket_proto: "{$.bucket_proto}"
+                        bucket_type: "{$.bucket_type}"
+                        bucket_port: "{$.bucket_port}"
+                  output:
+                      chefAttrs: chefState
             return:
               lb-stats:
                 value:
@@ -107,8 +118,8 @@ application:
                   stats-pass: "{$.stats-pass}"
               stats-url: 
                     value: "http://{$.stats-user}:{$.stats-pass}@{$.signals.compute.networks.public.ip}:{$.stats-port}{$.stats-url}"
-              entry-url:
-                    value: "http://{$.signals.compute.networks.public.ip}"
+              entry-urls:
+                    value: "{$.chefAttrs['*'][0]['haproxy']['entry_urls']}"
           launch: *update
           
           reconfigure-servers:
@@ -133,8 +144,14 @@ application:
                     jattrs:
                       haproxy:
                         server_uri: "{$.peers.servers.*.app-uri}"
-                        bucket: "{$.lb-bucket}"
-          
+                        bucket_proto: "{$.bucket_proto}"
+                        bucket_type: "{$.bucket_type}"
+                        bucket_port: "{$.bucket_port}"
+                  output:
+                      chefAttrs: chefState
+            return:
+              entry-urls:
+                    value: "{$.chefAttrs['*'][0]['haproxy']['entry_urls']}"    
     compute:
       type: compute.Instance
   bindings:
