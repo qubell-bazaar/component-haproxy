@@ -5,10 +5,10 @@ haproxy
 
 Installs and configures [HAProxy](http://haproxy.1wt.eu/), a TCP/HTTP load balancer.
 
-Version 2.0-37p
+Version 2.1-38p
 -------------
 
-[![Install](https://raw.github.com/qubell-bazaar/component-skeleton/master/img/install.png)](https://express.qubell.com/applications/upload?metadataUrl=https://raw.github.com/qubell-bazaar/component-haproxy/2.0-37p/meta.yml)
+[![Install](https://raw.github.com/qubell-bazaar/component-skeleton/master/img/install.png)](https://express.qubell.com/applications/upload?metadataUrl=https://raw.github.com/qubell-bazaar/component-haproxy/2.1-38p/meta.yml)
 
 Features
 --------
