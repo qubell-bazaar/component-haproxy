@@ -5,7 +5,7 @@ application:
     configuration.stats-pass: pa55w0rd
     configuration.stats-port: 1926
     configuration.stats-url:  /admin?stats
-    configuration.recipe-url: "https://s3.amazonaws.com/qubell-starter-kit-artifacts/qubell-bazaar/component-haproxy-cookbooks-stable-4e87674.tar.gz"
+    configuration.recipe-url: "https://s3.amazonaws.com/qubell-starter-kit-artifacts/qubell-bazaar/component-haproxy-cookbooks-stable-81e95df.tar.gz"
     configuration.bucket_proto: "http"
     configuration.bucket_type: "roundrobin"
     configuration.bucket_port: 80
