@@ -5,51 +5,7 @@ import requests
 from qubell.api.testing import *
 
 @environment({
-    "default": {},
-    "AmazonEC2_CentOS_64": {
-        "policies": [{
-            "action": "provisionVms",
-            "parameter": "imageId",
-            "value": "us-east-1/ami-bf5021d6"
-        }, {
-            "action": "provisionVms",
-            "parameter": "vmIdentity",
-            "value": "root"
-        }]
-    },
-    "AmazonEC2_CentOS_53": {
-        "policies": [{
-            "action": "provisionVms",
-            "parameter": "imageId",
-            "value": "us-east-1/ami-beda31d7"
-        }, {
-            "action": "provisionVms",
-            "parameter": "vmIdentity",
-            "value": "root"
-        }]
-    },
-    "AmazonEC2_Ubuntu_1204": {
-        "policies": [{
-            "action": "provisionVms",
-            "parameter": "imageId",
-            "value": "us-east-1/ami-967edcff"
-        }, {
-            "action": "provisionVms",
-            "parameter": "vmIdentity",
-            "value": "ubuntu"
-        }]
-    },
-    "AmazonEC2_Ubuntu_1004": {
-        "policies": [{
-            "action": "provisionVms",
-            "parameter": "imageId",
-            "value": "us-east-1/ami-9f3906f6"
-        }, {
-            "action": "provisionVms",
-            "parameter": "vmIdentity",
-            "value": "ubuntu"
-        }]
-    }
+    "default": {}
 })
 class HAProxyComponentTestCase(BaseComponentTestCase):
     name = "component-haproxy"
