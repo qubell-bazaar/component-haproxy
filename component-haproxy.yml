@@ -7,7 +7,7 @@ application:
     configuration.stats-url:  /admin?stats
     configuration.recipe-url: "https://s3.amazonaws.com/qubell-starter-kit-artifacts/qubell-bazaar/component-haproxy-cookbooks-stable-1fde225.tar.gz"
     configuration.bucket_type: "roundrobin"
-    compute.hardwareId: "c3.large"
+    compute.hardwareId: "t1.micro"
     compute.imageId:    "ami-246ed34c"
     compute.login:      "ec2-user"
     compute.locationId: "us-east-1"
@@ -40,7 +40,6 @@ application:
           put-file:        send-command(string filename, bytes payload)
           get-file:        send-command(string filename => bytes payload)
         servers:
-          app-host: consume-signal(string)
           app-uri: consume-signal(list<string>)
         actions:
           update: receive-command()
