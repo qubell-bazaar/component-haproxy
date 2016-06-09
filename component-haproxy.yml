@@ -4,12 +4,12 @@ application:
 # In this section you can set input configuration parameters which you
 # will be able to change later in reconfiguration
   configuration:
-    input.operating-system: {image: "us-east-1/ami-1ba18d72", identity: ec2-user} # image/identity pair for describing Operating system.
+    input.operating-system: {image: "ubuntu-1204-precise-v20160516", identity: gce-user} # image/identity pair for describing Operating system.
     input.stats-user: admin # Haproxy Statistics page User
     input.stats-pass: pa55w0rd # Haproxy Statistics page User Password
     input.stats-port: 1926 # Haproxy Statistics page port
     input.stats-url: /admin?stats # Haproxy Statistics page Url
-    input.instance-size: "m1.small" # EC2 Instance type
+    input.instance-size: "g1-small" # GCE Instance type
     input.recipe-url: "https://s3.amazonaws.com/qubell-starter-kit-artifacts/qubell-bazaar/component-haproxy-cookbooks-stable-7f70922.tar.gz" # Chef Cookbooks Url
 
 # Application Interfaces binding section.
@@ -51,11 +51,6 @@ application:
         input:
           operating-system:
              type: configuration(map<string,object>)
-             suggestions:
-                 "centos": {image: "us-east-1/ami-bf5021d6", identity: root}
-                 "amazon": {image: "us-east-1/ami-1ba18d72", identity: ec2-user}
-                 "ubuntu1204": {image: "us-east-1/ami-967edcff", identity: ubuntu}
-                 "ubuntu1004": {image: "us-east-1/ami-9f3906f6", identity: ubuntu}
           stats-user:
              type: configuration(string)
              name: HAProxy stats user
